@@ -1,7 +1,7 @@
 
 import Foundation
 
-protocol RandomVariable {
+protocol RandomlySampled {
     associatedtype NumberType
     func get() -> NumberType
     func sample(n: Int) -> [NumberType]
@@ -18,7 +18,7 @@ protocol Parameterizable {
 //    func map<B>(f: A -> B) -> Transformable
 //}
 
-struct UniformDoubleDist: RandomVariable {
+struct UniformDoubleDist: RandomlySampled {
     // Returns a uniform double on [0,1]
     func get() -> Double {
         return drand48()
@@ -33,7 +33,7 @@ let uniform = UniformDoubleDist()
 uniform.get()
 uniform.sample(2)
 
-struct BooleanDist: RandomVariable, Parameterizable {
+struct BooleanDist: RandomlySampled, Parameterizable {
     var p: Double
     let uniform = UniformDoubleDist()
     
@@ -49,7 +49,7 @@ struct BooleanDist: RandomVariable, Parameterizable {
 let tf = BooleanDist(p: 0.8)
 tf.sample(10)
 
-struct BernoulliDist: RandomVariable, Parameterizable {
+struct BernoulliDist: RandomlySampled, Parameterizable {
     var p: Double
     let uniform = UniformDoubleDist()
     
