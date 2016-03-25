@@ -17,33 +17,94 @@ protocol Parameterized {
     var p: ParameterType { get }
 }
 
-//protocol Transformable {
-//    associatedtype A
-//    associatedtype B
-//    func map<B>(f: A -> B) -> Transformable
-//}
+protocol Transformable {
+    associatedtype A
+    associatedtype B
+    
+    // function that maps A to B
+    var f: A -> B { get set }
+    
+    // function that resets the function f
+//    mutating func map(a: A) -> B
+}
 
-struct UniformDoubleDist: Stochastic {
+//let x = 9
+//x
+//
+struct Distribution<A> {
+//    var generator: T -> A
+    var get: () -> A
+    
+//    func get() -> A {
+//        return
+//    }
+    
+    func map<B>(generator: () -> B, f: A -> B) -> Distribution<B> {
+        var d = Distribution<B>(get: generator)
+        d.get = {
+            (Void) -> B in return f(self.get())
+        }
+        return d
+    }
+}
+
+let u = Distribution<Double>(get: {(Void) -> Double in return drand48()})
+u.get()
+u.get()
+u.get()
+
+let u2 = u.map(u.get, f: {(x: Double) in return x + 10})
+u2.get()
+
+
+//u.map({(x: Bool) -> Bool in return x}, f: {(p: Double, x: Double) -> Bool in return x < p})
+
+//let tfGenerator = {(p: Double, x: Double) -> Bool in return x < p}
+//tfGenerator(p: 0.5)
+
+
+
+//
+//let dist = Distribution<String>(x: "a")
+//print(dist.x)
+
+
+struct UniformDoubleDist: Stochastic, Transformable {
+    // identity function
+    var f = {(x: Double) -> Double in return x}
+    
+    
     // Returns a uniform double on [0,1]
     func get() -> Double {
-        return drand48()
+        return self.f(drand48())
     }
     
     func sample(n: Int) -> [Double] {
         return (1...n).map { x in get() }
     }
+    
+    
 }
 
 let uniform = UniformDoubleDist()
 uniform.get()
 uniform.sample(2)
 
-struct BooleanDist: Stochastic, Parameterized {
+
+struct BooleanDist: Stochastic, Parameterized, Transformable {
     var p: Double
+    
+    // identity function
+    var f = {(x: Bool) -> Bool in return x}
+    
     let uniform = UniformDoubleDist()
     
+    init(p: Double) {
+        self.p = p
+    }
+    
     func get() -> Bool {
-        return uniform.get() < p
+        return self.f(uniform.get() < p)
     }
     
     func sample(n: Int) -> [Bool] {
@@ -53,6 +114,7 @@ struct BooleanDist: Stochastic, Parameterized {
 
 let tf = BooleanDist(p: 0.8)
 tf.sample(10)
+
 
 struct BernoulliDist: Stochastic, Parameterized {
     var p: Double
