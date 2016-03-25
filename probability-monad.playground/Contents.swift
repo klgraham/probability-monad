@@ -7,7 +7,7 @@ protocol Stochastic {
     func sample(n: Int) -> [NumberType]
 }
 
-protocol TypeGeneric {
+protocol Parameterized {
     associatedtype ParameterType
     var p: ParameterType { get }
 }
@@ -33,7 +33,7 @@ let uniform = UniformDoubleDist()
 uniform.get()
 uniform.sample(2)
 
-struct BooleanDist: Stochastic, TypeGeneric {
+struct BooleanDist: Stochastic, Parameterized {
     var p: Double
     let uniform = UniformDoubleDist()
     
@@ -49,7 +49,7 @@ struct BooleanDist: Stochastic, TypeGeneric {
 let tf = BooleanDist(p: 0.8)
 tf.sample(10)
 
-struct BernoulliDist: Stochastic, TypeGeneric {
+struct BernoulliDist: Stochastic, Parameterized {
     var p: Double
     let uniform = UniformDoubleDist()
     
