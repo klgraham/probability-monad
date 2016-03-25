@@ -15,22 +15,28 @@ struct Distribution<A> {
         }
         return d
     }
+    
+    // FlatMaps one Distribution into another
+    func flatMap<B>(f: A -> Distribution<B>) -> Distribution<B> {
+        var d = Distribution<B>(get: {() -> Optional<B> in return nil})
+        d.get = {
+            (Void) -> B in return f(self.get()!).get()!
+        }
+        return d
+    }
 }
 
 // random number generation functions
 
-func randomDouble() -> Double {
-    return Double(Double(arc4random()) / Double(UInt32.max))
+func nextDouble() -> Double {
+    return Double(arc4random()) / Double(UInt32.max)
 }
 
-// from https://www.hackingwithswift.com/read/35/2/generating-random-numbers-in-ios-8-and-earlier
-func RandomInt(min min: Int, max: Int) -> Int {
-    if max < min { return min }
-    return Int(arc4random_uniform(UInt32((max - min) + 1))) + min
+func nextInt(min min: Int, max: Int) -> ((Void) -> Int) {
+    assert(max > min)
+    return { () in return Int(arc4random_uniform(UInt32((max - min) + 1))) + min }
 }
 
-let lessThan: Double -> (Double -> Bool) = { (x: Double) in return { (p: Double) in return x < p}
-}
 
 // transformation functions
 
@@ -38,11 +44,7 @@ func lessThan(p: Double) -> (Double -> Bool) {
     return { x in return x < p }
 }
 
-func oneOrZero(x: Bool) -> Int {
-    return x ? 1 : 0
-}
-
-let u = Distribution<Double>(get: randomDouble)
+let u = Distribution<Double>(get: nextDouble)
 u.get()
 u.get()
 u.get()
@@ -54,5 +56,10 @@ let tf1 = u.map(lessThan(0.5))
 tf1.get()
 tf1.sample(5)
 
-let bernoulli1 = tf1.map(oneOrZero)
+let bernoulli1 = tf1.map({(b: Bool) in return b ? 1 : 0})
 bernoulli1.sample(10)
+
+let die6 = Distribution<Int>(get: nextInt(min: 1, max: 6))
+die6.sample(10)
+
+//let pair = die6.flatMap({ (Int) in return { (Int) -} })
