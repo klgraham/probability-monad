@@ -2,9 +2,14 @@
 import Foundation
 
 protocol Stochastic {
-    associatedtype NumberType
-    func get() -> NumberType
-    func sample(n: Int) -> [NumberType]
+    // the type of value stored in the distribution
+    associatedtype ValueType
+    
+    // Sample a single value from the distribution
+    func get() -> ValueType
+    
+    // Sample n values from the distribution
+    func sample(n: Int) -> [ValueType]
 }
 
 protocol Parameterized {
