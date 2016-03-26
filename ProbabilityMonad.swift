@@ -1,4 +1,3 @@
-
 import Foundation
 
 struct Distribution<A> {
@@ -32,13 +31,14 @@ struct Distribution<A> {
     }
     
     // TODO: This function doesn't work just yet. It's returning the same number. Needs tail recursion too. Perhaps this is not possible in Swift?
+    
     // Samples from the new distribution so that the result matches the predicate
-//    func given(predicate: A -> Bool) -> Distribution<A> {
-//        var d: Distribution<A> = self
-//        let a = d.get()!
-//        d.get = { (Void) -> A in return predicate(a) ? a : d.get()! }
-//        return d
-//    }
+    //    func given(predicate: A -> Bool) -> Distribution<A> {
+    //        var d: Distribution<A> = self
+    //        let a = d.get()!
+    //        d.get = { (Void) -> A in return predicate(a) ? a : d.get()! }
+    //        return d
+    //    }
     
     func mean() -> Double {
         return sample(N).reduce(0, combine: { $0 + Double(String($1))! }) / Double(N)
@@ -107,16 +107,18 @@ dice.sample(7)
 
 
 // probability computations
-//print(tf.prob({ $0 }))
+print(tf.prob({ $0 }))
 
 
 // discrete distributions
 
-//let discreteUniform = 
-//print(u.prob({ $0 > 0.7 }))
+//let discreteUniform =
+print(u.prob({ $0 > 0.7 }))
 
 
-//print(pair.prob({ $0 == 7 }))
+print(pair.prob({ $0 == 7 }))
+
+// This stuff doesn't currently work
 //print(die6.given({ ($0 % 2) == 0 }).prob({ $0 == 4 }))
 //let evenDice = die6.given({ ($0 % 2) == 0 })
 //print(evenDice.sample(10))
