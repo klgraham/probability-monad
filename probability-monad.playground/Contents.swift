@@ -62,4 +62,11 @@ bernoulli1.sample(10)
 let die6 = Distribution<Int>(get: nextInt(min: 1, max: 6))
 die6.sample(10)
 
-//let pair = die6.flatMap({ (Int) in return { (Int) -} })
+
+let pair = die6.flatMap({
+    (d1: Int) in return die6.map({ (d2: Int) in return d1 + d2 })
+})
+pair.sample(7)
+
+
+
