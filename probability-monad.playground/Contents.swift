@@ -24,6 +24,13 @@ struct Distribution<A> {
         }
         return d
     }
+    
+    let N = 10000
+    func prob(predicate: A -> Bool) -> Double {
+        return Double(sample(N).filter(predicate).count) / Double(N)
+    }
+    
+    
 }
 
 // random number generation functions
@@ -49,14 +56,11 @@ u.get()
 u.get()
 u.get()
 
-let u2 = u.map({(x: Double) in return x + 10})
-u2.get()
+let tf = u.map(lessThan(0.75))
+tf.get()
+tf.sample(5)
 
-let tf1 = u.map(lessThan(0.5))
-tf1.get()
-tf1.sample(5)
-
-let bernoulli1 = tf1.map({(b: Bool) in return b ? 1 : 0})
+let bernoulli1 = tf.map({(b: Bool) in return b ? 1 : 0})
 bernoulli1.sample(10)
 
 let die6 = Distribution<Int>(get: nextInt(min: 1, max: 6))
@@ -68,5 +72,11 @@ let pair = die6.flatMap({
 })
 pair.sample(7)
 
+// probability computations
+print(tf.prob({ (x : Bool) in return x }))
 
+
+// discrete distributions
+
+//let discreteUniform = 
 
