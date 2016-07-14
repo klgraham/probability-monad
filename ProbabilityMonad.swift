@@ -68,7 +68,7 @@ func nextDouble() -> Double {
     return Double(arc4random()) / Double(UInt32.max)
 }
 
-func nextInt(min min: Int, max: Int) -> ((Void) -> Int) {
+func nextInt(min: Int, max: Int) -> ((Void) -> Int) {
     assert(max > min)
     return { () in return Int(arc4random_uniform(UInt32((max - min) + 1))) + min }
 }
