@@ -1,41 +1,24 @@
 import Foundation
 
-//protocol Distribution {
-//    associatedtype A: Comparable
-//
-//    // sample a single value from the distribution
-//    func get() -> A?
-//
-//    // sample n values from the distribution
-//    func sampleOf(_ n: Int) -> [A]
-//
-//    // Uses a function f: A -> B to Distribution<A> into Distribution<B>
-//    func map<B: Comparable>(using f: (A) -> B) -> Distribution
-//
-//    func flatMap<B: Comparable>(using f: @escaping (A) -> Distribution<B>) -> Distribution
-//}
-
-
-
 class Distribution<A> {
     
-    // sample a single value from the distribution
-    var get: () -> A?
+    // Draw a single value from the distribution
+    var draw: () -> A?
     
-    init(using get: @escaping () -> A?) {
-        self.get = get
+    init(using draw: @escaping () -> A?) {
+        self.draw = draw
     }
     
     // sample n values from the distribution
     func sampleOf(_ n: Int) -> [A] {
-        return (1...n).map { x in get()! }
+        return (1...n).map { x in draw()! }
     }
     
     // Uses a function f: A -> B to Distribution<A> into Distribution<B>
     func map<B>(using f: @escaping (A) -> B) -> Distribution<B> {
         let d = Distribution<B>(using: { () -> B? in return nil })
-        d.get = {
-            () -> B in return f(self.get()!)
+        d.draw = {
+            () -> B in return f(self.draw()!)
         }
         return d
     }
@@ -43,30 +26,30 @@ class Distribution<A> {
     // FlatMaps one Distribution into another
     func flatMap<B>(using f: @escaping (A) -> Distribution<B>) -> Distribution<B> {
         let d = Distribution<B>(using: {() -> B? in return nil})
-        d.get = {
-            () -> B in return f(self.get()!).get()!
+        d.draw = {
+            () -> B in return f(self.draw()!).draw()!
         }
         return d
     }
     
-    let N = 10000
+    let N = 100_000
     // probability of the predicate being true
     func prob(of predicate: (A) -> Bool) -> Double {
         return Double(sampleOf(N).filter(predicate).count) / Double(N)
     }
     
     // TODO: This function doesn't work just yet. It's returning the same number. Needs tail recursion too. Perhaps this is not possible in Swift?
-    private func getGiven(_ predicate: @escaping (A) -> Bool) -> A? {
-        let a = get()!
-        return predicate(a) ? a : get()
-    }
+//    private func drawGiven(_ predicate: @escaping (A) -> Bool) -> A? {
+//        let a = draw()!
+//        return predicate(a) ? a : draw()
+//    }
     
     // Returns a distribution where the samples obey the predicate
     func given(_ predicate: @escaping (A) -> Bool) -> Distribution<A> {
-        let d: Distribution<A> = Distribution<A>(using: self.get)
-        d.get = { () -> A? in
-            let a = self.get()!
-            return predicate(a) ? a : d.get()
+        let d: Distribution<A> = Distribution<A>(using: self.draw)
+        d.draw = { () -> A? in
+            let a = self.draw()!
+            return predicate(a) ? a : d.draw()
              }
         return d
     }
@@ -111,7 +94,7 @@ uniform.mean()
 
 
 let tf = uniform.map(using: { $0 < 0.75 })
-tf.get()
+tf.draw()
 tf.sampleOf(5)
 
 let bernoulli1 = tf.map(using: {$0 ? 1 : 0})
