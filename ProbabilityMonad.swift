@@ -23,7 +23,11 @@ class Distribution<A> {
         return d
     }
     
-    // FlatMaps one Distribution into another
+    /*
+     Combines random values from two distributions to create a new Distribution.
+
+     This can be used, for example, to compute the convolution of two distributions.
+     */
     func flatMap<B>(using f: @escaping (A) -> Distribution<B>) -> Distribution<B> {
         let d = Distribution<B>(using: {() -> B? in return nil})
         d.draw = {
@@ -33,6 +37,7 @@ class Distribution<A> {
     }
     
     let N = 1_000_000
+    
     // probability of the predicate being true
     func prob(of predicate: (A) -> Bool) -> Double {
         return Double(sampleOf(N).filter(predicate).count) / Double(N)
@@ -70,7 +75,7 @@ class Distribution<A> {
     }
 }
 
-// random number generation functions
+// MARK: - Random Number Generation Functions
 
 func nextDouble() -> Double {
     return Double(arc4random()) / Double(UInt32.max)
@@ -82,7 +87,8 @@ func nextInt(min: Int, max: Int) -> (() -> Int) {
 }
 
 
-// distributions
+// MARK: - Usage Examples
+
 let uniform = Distribution<Double>(using: nextDouble)
 print("Mean of Uniform distribution is : \(uniform.mean())")
 
@@ -99,6 +105,7 @@ let die6 = Distribution<Int>(using: nextInt(min: 1, max: 6))
 print("Rolling a six-sided die 10 times: \(die6.sampleOf(10))")
 
 // combining the distributions of two six-sided dice
+// This is a convolution.
 let dice = die6.flatMap(using: {
     (d1: Int) in return die6.map(using: { (d2: Int) in return d1 + d2 })
 })
@@ -121,5 +128,42 @@ print("Rolling the six-sided die that only rolls even numbers 10 times: \(evenDi
 //print(evenDice.prob({ $0 == 4 }))
 
 
+enum DistributionError: Error {
+    case illegalParameter(message: String)
+}
+
+// MARK: - Computing convolutions of probability distributions
+// This just means the independent random variables are being added together.
+// Convolution of two idential Bernoulli Distributions is Binomial
+func binomial(n: Int, p: Double) throws -> Distribution<Int> {
+    if p < 0 || p > 1 {
+        throw DistributionError.illegalParameter(message: "Parameter p must be defined on [0, 1], but was \(p)")
+    }
+    
+    // start with uniform distribution
+    let uniform = Distribution<Double>(using: nextDouble)
+    
+    // transform into bernoulli
+    let bernoulli = uniform.map(using: {$0 < 0.5 ? 1 : 0})
+
+    // The convolution of two independent identically distributed Bernoulli random variables is a Binomial random variable
+    // https://en.wikipedia.org/wiki/Convolution_of_probability_distributions
+    let binomial = bernoulli.flatMap(using: {
+        (bernoulliValue: Int) in return bernoulli.map(using: { $0 + bernoulliValue })
+    })
+    return binomial
+}
+
+let binomialDist = try? binomial(n: 2, p: 0.5)
+if binomialDist != nil {
+    print("Mean of Binomial(2, 0.5) should be 1: \(binomialDist!.mean())")
+    
+    print("\nSampling 10 values from Binomial(2, 0.5):")
+    for b in binomialDist!.sampleOf(10) {
+        print(b)
+    }
+} else {
+    print("Parameter p must be defined on [0, 1]")
+}
 
 
